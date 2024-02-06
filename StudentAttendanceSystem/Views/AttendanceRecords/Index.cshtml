@@ -1,0 +1,112 @@
+﻿@model IEnumerable<StudentAttendanceSystem.Models.AttendanceRecord>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Attendance Records</h1>
+
+<p>
+    <!-- Add a button to save attendance records -->
+    <button id="saveButton" class="btn btn-primary">Save Attendance</button>
+</p>
+
+<!-- Table to display attendance records -->
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Student Name
+            </th>
+            <th>
+                Course
+            </th>
+            <th>
+                Level
+            </th>
+            <th>
+                Date of Attendance
+            </th>
+            <th>
+                Is Present
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StudentName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Course)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Level)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DateOfAttendance)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsPresent)
+                </td>
+                <td>
+                    <!-- Links for edit, details, and delete actions -->
+                    <a asp-action="Edit" asp-route-id="@item.id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- JavaScript to handle saving attendance records -->
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Event handler for the save button
+            $('#saveButton').click(function () {
+                // Call a JavaScript function to save attendance records
+                saveAttendance();
+            });
+
+            // Function to save attendance records
+            function saveAttendance() {
+                // Prepare attendance record data
+                var attendanceRecords = [];
+                $('table tbody tr').each(function () {
+                    var record = {
+                        StudentName: $(this).find('td:eq(0)').text(),
+                        Course: $(this).find('td:eq(1)').text(),
+                        Level: $(this).find('td:eq(2)').text(),
+                        DateOfAttendance: $(this).find('td:eq(3)').text(),
+                        IsPresent: $(this).find('td:eq(4)').text()
+                    };
+                    attendanceRecords.push(record);
+                });
+
+                // Make an AJAX call to your controller action to save attendance records
+                $.ajax({
+                    url: '/AttendanceRecords/SaveAttendance',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(attendanceRecords),
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Attendance records saved successfully.');
+                            // Optionally, update the table or perform other actions
+                        } else {
+                            alert('Failed to save attendance records: ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error saving attendance records: ' + error);
+                    }
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,312 @@
+﻿@model IEnumerable<StudentAttendanceSystem.Models.Dashboard>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<!-- Add a date input field at the top -->
+ <div class="col-md-4">
+    <label for="selectedDate" class="form-label">Select Date:</label>
+    <input type="date" id="selectedDate" class="form-control" onchange="updateTableDates()" />
+</div>
+
+@* <h5>Select Course or Level of Attendees:</h5> *@
+<!-- Add dropdowns for courses and levels -->
+ <div class="col-md-4">
+    <label for="selectedCourse" class="form-label">Select Course:</label>
+    <select id="selectedCourse" class="form-control">
+        <option value="">All Courses</option>
+        @foreach (var course in ViewBag.Courses)
+        {
+            <option value="@course">@course</option>
+        }
+    </select>
+</div>
+
+<div class="col-md-4">
+    <label for="selectedLevel" class="form-label">Select Level:</label>
+    <select id="selectedLevel" class="form-control">
+        <option value="">All Levels</option>
+        @foreach (var level in ViewBag.Levels)
+        {
+            <option value="@level">@level</option>
+        }
+    </select>
+</div> 
+
+<!-- Rest of your existing code -->
+<input type="button" value="Filter Data" onclick="Filter();" /> 
+
+<table id="tblUserAuthList" class="table table-striped table-bordered">
+    <thead class="thead-dark">
+        <tr>
+            @* <th>
+                @Html.DisplayNameFor(model => model.ElementAt(0).StudentId)
+            </th> *@
+            <th>
+                @Html.DisplayNameFor(model => model.ElementAt(0).StudentName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ElementAt(0).Course)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ElementAt(0).Level)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ElementAt(0).DateOfAttendance)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ElementAt(0).isPresent)
+            </th>
+            <th></th> 
+           
+        </tr>
+    </thead>
+    <tbody>
+         @if (Model != null && Model.Count() > 0)
+        {
+            @for (int i = 0; i < Model.Count(); i++)
+            {
+                <tr>
+
+                    <td style="color:black;">
+                        @Html.DisplayFor(item => item.ElementAt(i).StudentName)
+                        @Html.HiddenFor(x => x.ElementAt(i).StudentName)
+
+                    </td>
+                    <td style="color:black;">
+                        @Html.DisplayFor(item => item.ElementAt(i).Course)
+                        @Html.HiddenFor(x => x.ElementAt(i).Course)
+                    </td>
+                    <td style="color:black;">
+                        @Html.DisplayFor(item => item.ElementAt(i).Level)
+                        @Html.HiddenFor(x => x.ElementAt(i).Level)
+                        @Html.HiddenFor(x => x.ElementAt(i).StudentId)
+                    </td>
+
+                    <td style="color:black;" display="hidden">
+                        @Html.EditorFor(item => item.ElementAt(i).DateOfAttendance)
+                        @* @Html.DisplayFor(item => item.ElementAt(i).DateOfAttendance.ToString("yyyy-MM-dd")) *@
+                       @*  @Html.HiddenFor(x => x.ElementAt(i).DateOfAttendance) *@
+
+                    </td>
+                    <td style="color:black;">
+                        @Html.EditorFor(item => item.ElementAt(i).isPresent)
+
+                    </td>
+                </tr>
+            }
+        }
+
+    </tbody>
+</table>
+<input type="button" class="btn btn-success" value="Save" onclick="Save();" />
+
+@* <script type="text/javascript">
+
+     // Function to update all date fields in the table
+    function updateTableDates() {
+       var selectedDate = $("#selectedDate").val();
+
+    //     // Set the selected date for all date fields in the table
+        $("#tblUserAuthList tbody tr").each(function () {
+           var row = $(this);
+             row.find('input[name="DateOfAttendance"]').val(selectedDate);
+         });
+     }
+     function Filter() {
+        // Get the selected course and level from the dropdowns
+        var selectedCourse = $("#selectedCourse").val();
+        var selectedLevel = $("#selectedLevel").val();
+
+        // Hide all rows in the table
+        $("#tblUserAuthList tbody tr").hide();
+
+        // Show rows that match both the selected course and level
+        if (selectedCourse || selectedLevel) {
+            $("#tblUserAuthList tbody tr").each(function () {
+                var row = $(this);
+                var course = row.find('input[name="Course"]').val();
+                var level = row.find('input[name="Level"]').val();
+
+                // Check if the row matches the selected course and level
+                var courseMatch = selectedCourse ? course === selectedCourse : true;
+                var levelMatch = selectedLevel ? level === selectedLevel : true;
+
+                if (courseMatch && levelMatch) {
+                    row.show();
+                }
+            });
+        } else {
+            // If no course or level is selected, show all rows
+            $("#tblUserAuthList tbody tr").show();
+        }
+    }
+
+    function Save() {
+        const form = $("form");
+
+        var tableData = [];
+        $("#tblUserAuthList tr:not(:first):visible").each(function () {
+          //$("#tblUserAuthList tr:visible").each(function () {
+            var row = $(this);
+            var data = {
+                Id: 0,
+                studentName: row.find('input[name="StudentName"]').val(),
+                course: row.find('input[name="Course"]').val(),
+                level: row.find('input[name="Level"]').val(),
+                dateOfAttendance: row.find('input[name="DateOfAttendance"]').val(),
+                // isPresent: row.find('input[name="isPresent"]').val() === "true" ? true : false,
+                isPresent: row.find('input[name="isPresent"]').prop('checked'),
+                studentId: +row.find('input[name="StudentId"]').val(),
+            };
+            tableData.push(data);
+        });
+        console.log()
+        console.log(tableData)
+        var result = JSON.stringify(tableData);
+        console.log(result)
+        console.log(`@Html.Raw(Json.Serialize(Model))`)
+        $.ajax({
+            url: '/dashboards/SaveAttendance',
+            type: 'post',
+            cache: false,
+            data: result, //JSON.stringify({Model : formData}),
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                // Handle the success response if needed
+            },
+            error: function (xhr, status, error) {
+                console.log(formData);
+                alert(xhr, status, error);
+                // Handle the error if needed
+            }
+        });      
+    }
+</script> *@
+
+        @*     /////////////////////////////////////////////////////////////////////////////////////////////////////// *@
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+
+    // Function to update all date fields in the table
+    function updateTableDates() {
+        var selectedDate = $("#selectedDate").val();
+
+        // Set the selected date for all date fields in the table
+        $("#tblUserAuthList tbody tr").each(function () {
+            var row = $(this);
+            row.find('input[name="DateOfAttendance"]').val(selectedDate);
+        });
+
+        // Save the selected date to localStorage
+        localStorage.setItem("selectedDate", selectedDate);
+    }
+
+    function Filter() {
+        // Get the selected course and level from the dropdowns
+        var selectedCourse = $("#selectedCourse").val();
+        var selectedLevel = $("#selectedLevel").val();
+
+        // Hide all rows in the table
+        $("#tblUserAuthList tbody tr").hide();
+
+        // Show rows that match both the selected course and level
+        if (selectedCourse || selectedLevel) {
+            $("#tblUserAuthList tbody tr").each(function () {
+                var row = $(this);
+                var course = row.find('input[name="Course"]').val();
+                var level = row.find('input[name="Level"]').val();
+
+                // Check if the row matches the selected course and level
+                var courseMatch = selectedCourse ? course === selectedCourse : true;
+                var levelMatch = selectedLevel ? level === selectedLevel : true;
+
+                if (courseMatch && levelMatch) {
+                    row.show();
+                }
+            });
+        } else {
+            // If no course or level is selected, show all rows
+            $("#tblUserAuthList tbody tr").show();
+        }
+
+        // Save the filter criteria to localStorage
+        localStorage.setItem("selectedCourse", selectedCourse);
+        localStorage.setItem("selectedLevel", selectedLevel);
+    }
+
+    function Save() {
+        const form = $("form");
+
+        var tableData = [];
+        $("#tblUserAuthList tr:not(:first):visible").each(function () {
+            var row = $(this);
+            var data = {
+                Id: 0,
+                studentName: row.find('input[name="StudentName"]').val(),
+                course: row.find('input[name="Course"]').val(),
+                level: row.find('input[name="Level"]').val(),
+                dateOfAttendance: row.find('input[name="DateOfAttendance"]').val(),
+                isPresent: row.find('input[name="isPresent"]').prop('checked'),
+                studentId: +row.find('input[name="StudentId"]').val(),
+            };
+            tableData.push(data);
+        });
+
+        // Save the tableData to localStorage
+        localStorage.setItem("tableData", JSON.stringify(tableData));
+
+        $.ajax({
+            url: '/dashboards/SaveAttendance',
+            type: 'post',
+            cache: false,
+            data: JSON.stringify(tableData),
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                // Handle the success response if needed
+            },
+            error: function (xhr, status, error) {
+                console.log(formData);
+                alert(xhr, status, error);
+                // Handle the error if needed
+            }
+        });
+    }
+
+    // Function to load data from localStorage on page load
+    $(document).ready(function () {
+        // Retrieve selected date, course, level, and tableData from localStorage
+        var selectedDate = localStorage.getItem("selectedDate");
+        var selectedCourse = localStorage.getItem("selectedCourse");
+        var selectedLevel = localStorage.getItem("selectedLevel");
+        var tableData = JSON.parse(localStorage.getItem("tableData"));
+
+        // Set the values in the corresponding elements
+        $("#selectedDate").val(selectedDate);
+        $("#selectedCourse").val(selectedCourse);
+        $("#selectedLevel").val(selectedLevel);
+
+        // Trigger the updateTableDates and Filter functions
+        updateTableDates();
+        Filter();
+
+        // Populate the table with the stored tableData
+        if (tableData) {
+            tableData.forEach(function (data) {
+                // Find the corresponding row in the table and update values
+                var row = $("#tblUserAuthList tbody tr").filter(function () {
+                    return $(this).find('input[name="StudentId"]').val() == data.studentId;
+                });
+
+                if (row.length > 0) {
+                    row.find('input[name="isPresent"]').prop('checked', data.isPresent);
+                }
+            });
+        }
+    });
+
+</script>
