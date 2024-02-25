@@ -33,16 +33,43 @@ namespace StudentAttendanceSystem.Controllers
             // Populate ViewBag with available courses and levels
             ViewBag.Courses = _context.Register.Select(s => s.Course).Distinct().ToList();
             ViewBag.Levels = _context.Register.Select(s => s.Level).Distinct().ToList();
+
+          
+
+            // Load attendance data
+            var attendanceData = _context.Dashboard.ToList();
+            foreach (var attendance in attendanceData)
+            {
+                var student = students.FirstOrDefault(s => s.StudentId == attendance.StudentId);
+                if (student != null)
+                {
+                    student.isPresent = attendance.isPresent;
+                   
+                }
+            }
+
+
             // Pass student data to the view
             return View(students);
 
             /*return View(await _context.Dashboard.ToListAsync());*/
         }
 
+        [HttpGet]
+        public IActionResult GetSelectedDate()
+        {
+            // Retrieve the selected date from the database
+            var selectedDate = _context.Dashboard.FirstOrDefault()?.DateOfAttendance ?? DateTime.Today;
+
+            // Return the selected date as a string
+            return Ok(selectedDate.ToString("yyyy-MM-dd")); // Return date in a format suitable for the date picker
+        }
+
+
         [HttpPost]
         public IActionResult Index([FromBody] List<Dashboard> modelData)
         {
-            return Json("Data Added successfully");
+           /* return Json("Data Added successfully");*/
             try
             {
                 // Ensure the ModelState is valid before proceeding
@@ -67,7 +94,7 @@ namespace StudentAttendanceSystem.Controllers
             }
         }
 
-        [HttpPost]
+       /* [HttpPost]
         public IActionResult SaveAttendance([FromBody] List<Dashboard> attendanceList)
         {
             try
@@ -94,6 +121,37 @@ namespace StudentAttendanceSystem.Controllers
             }
 
         }
+*/
+
+        [HttpPost]
+        public IActionResult SaveAttendance([FromBody] List<Dashboard> attendanceList)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    /*// Remove previous attendance records for the same students
+                    var studentIds = attendanceList.Select(a => a.StudentId).ToList();
+                    var previousAttendance = _context.Dashboard.Where(d => studentIds.Contains(d.StudentId));
+                    _context.Dashboard.RemoveRange(previousAttendance);*/
+
+                    // Save new attendance records
+                    _context.Dashboard.AddRange(attendanceList);
+                    _context.SaveChanges();
+
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false, message = "ModelState is not valid." });
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions appropriately
+                return Json(new { success = false, message = "An error occurred while saving attendance data." });
+            }
+        }
+
+
+      
 
         /*[HttpPost]
         public IActionResult SaveData([FromBody] AttendanceRecord data)
@@ -111,6 +169,9 @@ namespace StudentAttendanceSystem.Controllers
             var savedData = _context.AttendanceRecord.ToList();
             return View(savedData);
         }*/
+
+
+
 
         private bool DashboardExists(int Id)
         {

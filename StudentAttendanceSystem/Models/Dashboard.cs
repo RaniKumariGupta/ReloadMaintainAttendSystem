@@ -15,7 +15,7 @@ namespace StudentAttendanceSystem.Models
         public string? Level { get; set; }
 
         [Display(Name = "Date of Attendance")]
-        [DataType(DataType.Date)]
+        [DataType(DataType.Date)]                                                                                                                                                        
         public DateTime DateOfAttendance { get; set; }
         public bool isPresent { get; set; }
     }

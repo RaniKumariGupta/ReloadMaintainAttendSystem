@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using StudentAttendanceSystem.Data;
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<StudentAttendanceSystemContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("StudentAttendanceSystemContext") ?? throw new InvalidOperationException("Connection string 'StudentAttendanceSystemContext' not found.")));
 builder.Services.AddDbContext<StudentAttendSysContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("StudentAttendSysContext") ?? throw new InvalidOperationException("Connection string 'StudentAttendSysContext' not found.")));
 
